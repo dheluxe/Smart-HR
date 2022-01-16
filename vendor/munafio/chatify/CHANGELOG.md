@@ -2,6 +2,43 @@
 
 All notable changes to this project will be documented in this file.
 
+## v1.3.3 (2022-01-10)
+
+### Fixed
+
+- Fixed file upload size limit error message rephrase #160.
+
+### Changed
+
+- Files max upload size changed & added to the config to be customizable.
+- Changed `Messenger colors` logic to be more flexible and customizable.
+- Migration files renamed, file date automatically will be changed to the publish/install date.
+
+## v1.3.2 (2022-01-07)
+
+### Fixed
+
+- Fixed CSS issue in FF with the contact list #157.
+- Correct misspelt of `updateContactItem` method (typo error) #159.
+
+## v1.3.1 (2021-12-23)
+
+### Fixed
+
+- Fixed migration's rollback, (ch\_) prefix added.
+
+## v1.3.0 (2021-11-30)
+
+### Fixed
+
+- UI/Ux fixes & improvements.
+- Backend fixes & improvements.
+
+### Added
+
+- Messages, Contacts, and Search pagination.
+- API routes.
+
 ## v1.2.5 (2021-08-18)
 
 ### Fixed

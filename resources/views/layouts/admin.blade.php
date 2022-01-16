@@ -150,79 +150,7 @@ $company_favicon = Utility::getValByName('company_favicon');
         <script src="{{ asset('assets/js/cookie.notice.js') }}"></script>
     @endif
 
-    @if (\Auth::user()->type != 'super admin')
-        <script>
-            $(document).ready(function() {
-                pushNotification('{{ Auth::id() }}');
-            });
 
-            function pushNotification(id) {
-
-                // ajax setup form csrf token
-                $.ajaxSetup({
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    }
-                });
-
-                // Enable pusher logging - don't include this in production
-                Pusher.logToConsole = false;
-
-                var pusher = new Pusher('{{ env('PUSHER_APP_KEY') }}', {
-                    cluster: '{{ env('PUSHER_APP_CLUSTER') }}',
-                    forceTLS: true
-                });
-
-                // Pusher Notification
-                var channel = pusher.subscribe('send_notification');
-                channel.bind('notification', function(data) {
-                    if (id == data.user_id) {
-                        $(".notification-toggle").addClass('beep');
-                        $(".notification-dropdown #notification-list").prepend(data.html);
-                    }
-                });
-
-                // Pusher Message
-                var msgChannel = pusher.subscribe('my-channel');
-                msgChannel.bind('my-chat', function(data) {
-                    console.log(data);
-                    if (id == data.to) {
-                        getChat();
-                    }
-                });
-            }
-
-            // Get chat for top ox
-            function getChat() {
-                $.ajax({
-                    url: '{{ route('message.data') }}',
-                    type: "get",
-                    cache: false,
-                    success: function(data) {
-                        console.log(data);
-                        if (data.length != 0) {
-                            $(".message-toggle-msg").addClass('beep');
-                            $(".dropdown-list-message-msg").html(data);
-                        }
-                    }
-                })
-            }
-
-            getChat();
-
-            $(document).on("click", ".mark_all_as_read_message", function() {
-                $.ajax({
-                    url: '{{ route('message.seen') }}',
-                    type: "get",
-                    cache: false,
-                    success: function(data) {
-                        $('.dropdown-list-message-msg').html('');
-                        $(".message-toggle-msg").removeClass('beep');
-                    }
-                })
-            });
-        </script>
-    @endif
 
     @stack('script-page')
 

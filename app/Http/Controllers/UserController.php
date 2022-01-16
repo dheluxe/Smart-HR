@@ -15,6 +15,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Spatie\Permission\Models\Role;
 
@@ -33,7 +34,6 @@ class UserController extends Controller
             {
                 $users = User::where('created_by', '=', $user->creatorId())->where('type', '!=', 'employee')->get();
             }
-
             return view('user.index', compact('users'));
         }
         else
@@ -102,7 +102,7 @@ class UserController extends Controller
                 $plan       = Plan::find($objUser->plan);
 
                 if($total_user < $plan->max_users || $plan->max_users == -1)
-                {  
+                {
                     // dd($request->role);
                     $role_r = Role::findById($request->role);
                     $user   = User::create(
@@ -160,7 +160,6 @@ class UserController extends Controller
         {
             $user  = User::find($id);
             $roles = Role::where('created_by', '=', $user->creatorId())->where('name', '!=', 'employee')->get()->pluck('name', 'id');
-
             return view('user.edit', compact('user', 'roles'));
         }
         else

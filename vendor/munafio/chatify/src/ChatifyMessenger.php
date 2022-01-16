@@ -14,6 +14,15 @@ class ChatifyMessenger
 
     public $pusher;
 
+    /**
+     * Get max file's upload size in MB.
+     *
+     * @return int
+     */
+    public function getMaxUploadSize(){
+        return config('chatify.attachments.max_upload_size') * 1048576;
+    }
+
     public function __construct()
     {
         $this->pusher = new Pusher(
@@ -49,18 +58,7 @@ class ChatifyMessenger
      * @return array
      */
     public function getMessengerColors(){
-        return [
-            '1' => '#2180f3',
-            '2' => '#2196F3',
-            '3' => '#00BCD4',
-            '4' => '#3F51B5',
-            '5' => '#673AB7',
-            '6' => '#4CAF50',
-            '7' => '#FFC107',
-            '8' => '#FF9800',
-            '9' => '#ff2522',
-            '10' => '#9C27B0',
-        ];
+        return config('chatify.colors');
     }
 
     /**
@@ -207,7 +205,7 @@ class ChatifyMessenger
      * @param Collection $user
      * @return void
      */
-    public function getContactItem($messenger_id, $user){
+    public function getContactItem($user){
         // get last message
         $lastMessage = $this->getLastMessageQuery($user->id);
 
@@ -219,8 +217,6 @@ class ChatifyMessenger
             'user' => $user,
             'lastMessage' => $lastMessage,
             'unseenCounter' => $unseenCounter,
-            'type'=>'user',
-            'id' => $messenger_id,
         ])->render();
     }
 

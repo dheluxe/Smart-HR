@@ -17,7 +17,7 @@
         "laravel/framework": "^8.54",
         "laravel/sanctum": "^2.11",
         "laravel/tinker": "^2.5",
-        "laravel/ui": "^2.0",
+        "laravel/ui": "^v3.4.1",
         "laravelcollective/html": "^6.1",
         "livepixel/mercado-pago": "^1.0",
         "maatwebsite/excel": "^3.1",

@@ -1136,15 +1136,6 @@ class Router implements BindingRegistrar, RegistrarContract
         return $this->current() ? $this->current()->getName() : null;
     }
 
-     /**
-     * Get the current route name.
-     *
-     * @return string|null
-     */
-    public function getCourant()
-    {
-        return $this->current() ? $this->current()->getName() : null;
-    }
     /**
      * Alias for the "currentRouteNamed" method.
      *
@@ -1335,6 +1326,6 @@ class Router implements BindingRegistrar, RegistrarContract
             return (new RouteRegistrar($this))->attribute($method, is_array($parameters[0]) ? $parameters[0] : $parameters);
         }
 
-        return (new RouteRegistrar($this))->attribute($method, $parameters[0]);
+        return (new RouteRegistrar($this))->attribute($method, array_key_exists(0, $parameters) ? $parameters[0] : true);
     }
 }

@@ -19,7 +19,7 @@
                 <i class="fa fa-file-excel"></i> {{ __('Export') }}
             </a>
         </div>
-       
+
     </div>
 
 @endsection
@@ -86,11 +86,13 @@
                                                     @endcan
                                                 @endif
                                             @else
-                                                <a href="#" data-url="{{ URL::to('leave/' . $leave->id . '/action') }}"
-                                                    data-size="lg" data-ajax-popup="true"
-                                                    data-title="{{ __('Leave Action') }}" class="edit-icon bg-success"
-                                                    data-toggle="tooltip" data-original-title="{{ __('Leave Action') }}"><i
-                                                        class="fas fa-caret-right"></i> </a>
+                                                @if(\Auth::user()->id != \Auth::user()->getEmployee($leave->employee_id)->user_id )
+                                                    <a href="#" data-url="{{ URL::to('leave/' . $leave->id . '/action') }}"
+                                                       data-size="lg" data-ajax-popup="true"
+                                                       data-title="{{ __('Leave Action') }}" class="edit-icon bg-success"
+                                                       data-toggle="tooltip" data-original-title="{{ __('Leave Action') }}"><i
+                                                            class="fas fa-caret-right"></i> </a>
+                                                @endif
                                                 @can('Edit Leave')
                                                     <a href="#" data-url="{{ URL::to('leave/' . $leave->id . '/edit') }}"
                                                         data-size="lg" data-ajax-popup="true"

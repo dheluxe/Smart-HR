@@ -17,11 +17,13 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
 use App\Imports\EmployeesImport;
 use App\Exports\EmployeesExport;
 use Maatwebsite\Excel\Facades\Excel;
+use Spatie\Permission\Models\Role;
 
 //use Faker\Provider\File;
 
@@ -57,8 +59,8 @@ class EmployeeController extends Controller
             $designations     = Designation::where('created_by', \Auth::user()->creatorId())->get()->pluck('name', 'id');
             $employees        = User::where('created_by', \Auth::user()->creatorId())->get();
             $employeesId      = \Auth::user()->employeeIdFormat($this->employeeNumber());
-
-            return view('employee.create', compact('employees', 'employeesId', 'departments', 'designations', 'documents', 'branches', 'company_settings'));
+            $roles            = Role::where('created_by', '=', \Auth::user()->creatorId())->get()->pluck('name', 'id');
+            return view('employee.create', compact('employees', 'employeesId', 'departments', 'designations', 'documents', 'branches', 'company_settings', 'roles'));
         } else {
             return redirect()->back()->with('error', __('Permission denied.'));
         }
@@ -79,6 +81,7 @@ class EmployeeController extends Controller
                     'password' => 'required',
                     'department_id' => 'required',
                     'designation_id' => 'required',
+                    'role_id' => 'required',
                     'document.*' => 'mimes:jpeg,png,jpg,gif,svg,pdf,doc,zip|max:20480',
                 ]
             );
@@ -91,7 +94,7 @@ class EmployeeController extends Controller
             $objUser        = User::find(\Auth::user()->creatorId());
             $total_employee = $objUser->countEmployees();
             $plan           = Plan::find($objUser->plan);
-
+            $role_r         = Role::findById($request['role_id']);
             if ($total_employee < $plan->max_employees || $plan->max_employees == -1) {
 
                 $user = User::create(
@@ -99,13 +102,13 @@ class EmployeeController extends Controller
                         'name' => $request['name'],
                         'email' => $request['email'],
                         'password' => Hash::make($request['password']),
-                        'type' => 'employee',
+                        'type' => $role_r->name,
                         'lang' => 'en',
                         'created_by' => \Auth::user()->creatorId(),
                     ]
                 );
                 $user->save();
-                $user->assignRole('Employee');
+                $user->assignRole($role_r);
             } else {
                 return redirect()->back()->with('error', __('Your employee limit is over, Please upgrade plan.'));
             }
@@ -203,8 +206,9 @@ class EmployeeController extends Controller
             $designations = Designation::where('created_by', \Auth::user()->creatorId())->get()->pluck('name', 'id');
             $employee     = Employee::find($id);
             $employeesId  = \Auth::user()->employeeIdFormat($employee->employee_id);
+            $roles        = Role::where('created_by', '=', \Auth::user()->creatorId())->get()->pluck('name', 'id');
 
-            return view('employee.edit', compact('employee', 'employeesId', 'branches', 'departments', 'designations', 'documents'));
+            return view('employee.edit', compact('employee', 'employeesId', 'branches', 'departments', 'designations', 'documents', 'roles'));
         } else {
             return redirect()->back()->with('error', __('Permission denied.'));
         }
@@ -271,13 +275,26 @@ class EmployeeController extends Controller
             }
 
             $employee = Employee::findOrFail($id);
+            $user = User::findOrFail($employee['user_id']);
+            if ($request['type']) {
+                $role          = Role::findById($request['type']);
+                $user['type'] = $role->name;
+            }
+            $user['name'] = $request['name'];
+            $user->save();
+            if ($request['type']) {
+                $user->assignRole($role);
+            }
+
+
+
             $input    = $request->all();
             $employee->fill($input)->save();
             if ($request->salary) {
                 return redirect()->route('setsalary.index')->with('success', 'Employee successfully updated.');
             }
 
-            if (\Auth::user()->type != 'employee') {
+            if (\Auth::user()->type == 'company' || \Auth::user()->type != 'super admin') {
                 return redirect()->route('employee.index')->with('success', 'Employee successfully updated.');
             } else {
                 return redirect()->route('employee.show', \Illuminate\Support\Facades\Crypt::encrypt($employee->id))->with('success', 'Employee successfully updated.');
@@ -328,18 +345,18 @@ class EmployeeController extends Controller
         }
     }
 
-    
-    
+
+
     function employeeNumber()
     {
         $latest = Employee::where('created_by', '=', \Auth::user()->creatorId())->latest()->first();
         if (!$latest) {
             return 1;
         }
-        
+
         return $latest->id + 1;
     }
-    
+
     public function export()
     {
         $name = 'employee_' . date('Y-m-d i:h:s');
@@ -347,12 +364,12 @@ class EmployeeController extends Controller
 
         return $data;
     }
-    
+
     public function importFile()
     {
         return view('employee.import');
     }
-    
+
     public function import(Request $request)
     {
         $rules = [
@@ -370,7 +387,7 @@ class EmployeeController extends Controller
         $employees = (new EmployeesImport())->toArray(request()->file('file'))[0];
         $totalCustomer = count($employees) - 1;
         $errorArray    = [];
-        
+
         for ($i = 1; $i <= count($employees) - 1; $i++) {
 
             $employee = $employees[$i];
@@ -379,11 +396,11 @@ class EmployeeController extends Controller
             // dd($userByEmail);
 
             if (!empty($employeeByEmail) && !empty($userByEmail)) {
-                
+
                 $employeeData = $employeeByEmail;
             } else {
 
-                
+
                 $user = new User();
                 $user->name = $employee[0];
                 $user->email = $employee[5];
@@ -418,16 +435,16 @@ class EmployeeController extends Controller
             $employeeData->branch_location     = $employee[16];
             $employeeData->tax_payer_id        = $employee[17];
             $employeeData->created_by          = \Auth::user()->creatorId();
-            
+
             if (empty($employeeData)) {
-                
+
                 $errorArray[] = $employeeData;
             } else {
-                
+
                 $employeeData->save();
             }
         }
-        
+
         $errorRecord = [];
 
         if (empty($errorArray)) {

@@ -48,7 +48,7 @@ Route::post('/makeSeen', 'MessagesController@seen')->name('messages.seen');
 /**
  * Get contacts
  */
-Route::post('/getContacts', 'MessagesController@getContacts')->name('contacts.get');
+Route::get('/getContacts', 'MessagesController@getContacts')->name('contacts.get');
 
 /**
  * Update contact item data
@@ -69,7 +69,7 @@ Route::post('/favorites', 'MessagesController@getFavorites')->name('favorites');
 /**
  * Search in messenger
  */
-Route::post('/search', 'MessagesController@search')->name('search');
+Route::get('/search', 'MessagesController@search')->name('search');
 
 /**
  * Get shared photos
@@ -111,5 +111,3 @@ Route::get('/group/{id}', 'MessagesController@index')->name('group');
 // Route::get('/route', function(){ return 'Munaf'; }); // works as a route
 Route::get('/{id}', 'MessagesController@index')->name('user');
 // Route::get('/route', function(){ return 'Munaf'; }); // works as a user id
-Route::get('/message/data', 'MessagesController@getMessagePopup')->name('message.data');
-Route::get('/message/seen', 'MessagesController@messageSeen')->name('message.seen');

@@ -10,7 +10,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
-use Spatie\Permission\Models\Role;
 
 class RegisteredUserController extends Controller
 {
@@ -34,10 +33,9 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request)
     {
-        $default_language =  \DB::table('settings')->select('value')->where('name', 'default_language')->first();
         $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
@@ -45,16 +43,7 @@ class RegisteredUserController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'type' => 'company',
-            'lang' => !empty($default_language) ? $default_language->value : '',
-            'plan' => 1,
-            'created_by' => 1,
         ]);
-
-        $role_r = Role::findByName('company');
-
-        $user->assignRole($role_r);
-
 
         event(new Registered($user));
 

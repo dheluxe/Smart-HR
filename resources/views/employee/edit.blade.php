@@ -18,29 +18,35 @@
 
                     <div class="row">
                         <div class="form-group col-md-6">
-                            {!! Form::label('name', __('Name'),['class'=>'form-control-label']) !!}<span class="text-danger pl-1">*</span>
+                            {!! Form::label('name', __('Name'),['class'=>'form-control-label']) !!}<span
+                                class="text-danger pl-1">*</span>
                             {!! Form::text('name', null, ['class' => 'form-control','required' => 'required']) !!}
                         </div>
                         <div class="form-group col-md-6">
-                            {!! Form::label('phone', __('Phone'),['class'=>'form-control-label']) !!}<span class="text-danger pl-1">*</span>
+                            {!! Form::label('phone', __('Phone'),['class'=>'form-control-label']) !!}<span
+                                class="text-danger pl-1">*</span>
                             {!! Form::number('phone',null, ['class' => 'form-control']) !!}
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
-                                {!! Form::label('dob', __('Date of Birth'),['class'=>'form-control-label']) !!}<span class="text-danger pl-1">*</span>
+                                {!! Form::label('dob', __('Date of Birth'),['class'=>'form-control-label']) !!}<span
+                                    class="text-danger pl-1">*</span>
                                 {!! Form::text('dob', null, ['class' => 'form-control datepicker']) !!}
                             </div>
                         </div>
                         <div class="col-md-6 ">
                             <div class="form-group ">
-                                {!! Form::label('gender', __('Gender'),['class'=>'form-control-label']) !!}<span class="text-danger pl-1">*</span>
+                                {!! Form::label('gender', __('Gender'),['class'=>'form-control-label']) !!}<span
+                                    class="text-danger pl-1">*</span>
                                 <div class="d-flex radio-check">
                                     <div class="custom-control custom-radio custom-control-inline">
-                                        <input type="radio" id="g_male" value="Male" name="gender" class="custom-control-input" {{($employee->gender == 'Male')?'checked':''}}>
+                                        <input type="radio" id="g_male" value="Male" name="gender"
+                                               class="custom-control-input" {{($employee->gender == 'Male')?'checked':''}}>
                                         <label class="custom-control-label" for="g_male">{{__('Male')}}</label>
                                     </div>
                                     <div class="custom-control custom-radio custom-control-inline">
-                                        <input type="radio" id="g_female" value="Female" name="gender" class="custom-control-input" {{($employee->gender == 'Female')?'checked':''}}>
+                                        <input type="radio" id="g_female" value="Female" name="gender"
+                                               class="custom-control-input" {{($employee->gender == 'Female')?'checked':''}}>
                                         <label class="custom-control-label" for="g_female">{{__('Female')}}</label>
                                     </div>
                                 </div>
@@ -48,7 +54,8 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        {!! Form::label('address', __('Address'),['class'=>'form-control-label']) !!}<span class="text-danger pl-1">*</span>
+                        {!! Form::label('address', __('Address'),['class'=>'form-control-label']) !!}<span
+                            class="text-danger pl-1">*</span>
                         {!! Form::textarea('address',null, ['class' => 'form-control','rows'=>2]) !!}
                     </div>
                     @if(\Auth::user()->type=='employee')
@@ -78,11 +85,20 @@
                             </div>
                             <div class="form-group col-md-6">
                                 {{ Form::label('designation_id', __('Designation'),['class'=>'form-control-label']) }}
-                                <select class="select2 form-control select2-multiple" id="designation_id" name="designation_id" data-toggle="select2" data-placeholder="{{ __('Select Designation ...') }}">
+                                <select class="select2 form-control select2-multiple" id="designation_id"
+                                        name="designation_id" data-toggle="select2"
+                                        data-placeholder="{{ __('Select Designation ...') }}">
                                     <option value="">{{__('Select any Designation')}}</option>
                                 </select>
                             </div>
-                            <div class="form-group col-md-6">
+                            @if(\Auth::user()->id != $employee->user_id)
+                                <div class="form-group col-md-6">
+                                    {{ Form::label('type', __('Role'),['class'=>'form-control-label']) }}
+                                    {{ Form::select('type', $roles,null,array('class' => 'form-control select2','id'=>'type','required'=>'required')) }}
+                                </div>
+                            @endif
+
+                            <div class="form-group col-md-12">
                                 {!! Form::label('company_doj', 'Company Date Of Joining',['class'=>'form-control-label']) !!}
                                 {!! Form::text('company_doj', null, ['class' => 'form-control datepicker','required' => 'required']) !!}
                             </div>
@@ -142,20 +158,30 @@
                             <div class="row">
                                 <div class="form-group col-12">
                                     <div class="float-left col-4">
-                                        <label for="document" class="float-left pt-1 form-control-label">{{ $document->name }} @if($document->is_required == 1) <span class="text-danger">*</span> @endif</label>
+                                        <label for="document"
+                                               class="float-left pt-1 form-control-label">{{ $document->name }} @if($document->is_required == 1)
+                                                <span class="text-danger">*</span> @endif</label>
                                     </div>
                                     <div class="float-right col-8">
-                                        <input type="hidden" name="emp_doc_id[{{ $document->id}}]" id="" value="{{$document->id}}">
+                                        <input type="hidden" name="emp_doc_id[{{ $document->id}}]" id=""
+                                               value="{{$document->id}}">
                                         <div class="choose-file form-group">
                                             <label for="document[{{ $document->id }}]">
                                                 <div>{{__('Choose File')}}</div>
-                                                <input class="form-control @if(!empty($employeedoc[$document->id])) float-left @endif @error('document') is-invalid @enderror border-0" @if($document->is_required == 1 && empty($employeedoc[$document->id]) ) required @endif name="document[{{ $document->id}}]" type="file" id="document[{{ $document->id }}]" data-filename="{{ $document->id.'_filename'}}">
+                                                <input
+                                                    class="form-control @if(!empty($employeedoc[$document->id])) float-left @endif @error('document') is-invalid @enderror border-0"
+                                                    @if($document->is_required == 1 && empty($employeedoc[$document->id]) ) required
+                                                    @endif name="document[{{ $document->id}}]" type="file"
+                                                    id="document[{{ $document->id }}]"
+                                                    data-filename="{{ $document->id.'_filename'}}">
                                             </label>
                                             <p class="{{ $document->id.'_filename'}}"></p>
                                         </div>
 
                                         @if(!empty($employeedoc[$document->id]))
-                                            <br> <span class="text-xs"><a href="{{ (!empty($employeedoc[$document->id])?asset(Storage::url('uploads/document')).'/'.$employeedoc[$document->id]:'') }}" target="_blank">{{ (!empty($employeedoc[$document->id])?$employeedoc[$document->id]:'') }}</a>
+                                            <br> <span class="text-xs"><a
+                                                    href="{{ (!empty($employeedoc[$document->id])?asset(Storage::url('uploads/document')).'/'.$employeedoc[$document->id]:'') }}"
+                                                    target="_blank">{{ (!empty($employeedoc[$document->id])?$employeedoc[$document->id]:'') }}</a>
                                                     </span>
                                         @endif
                                     </div>
@@ -171,33 +197,33 @@
                     <div class="card-header"><h6 class="mb-0">{{__('Bank Account Detail')}}</h6></div>
                     <div class="card-body employee-detail-edit-body">
                         <div class="row">
-                        <div class="form-group col-md-6">
-                            {!! Form::label('account_holder_name', __('Account Holder Name'),['class'=>'form-control-label']) !!}
-                            {!! Form::text('account_holder_name', null, ['class' => 'form-control']) !!}
+                            <div class="form-group col-md-6">
+                                {!! Form::label('account_holder_name', __('Account Holder Name'),['class'=>'form-control-label']) !!}
+                                {!! Form::text('account_holder_name', null, ['class' => 'form-control']) !!}
 
-                        </div>
-                        <div class="form-group col-md-6">
-                            {!! Form::label('account_number', __('Account Number'),['class'=>'form-control-label']) !!}
-                            {!! Form::number('account_number', null, ['class' => 'form-control']) !!}
+                            </div>
+                            <div class="form-group col-md-6">
+                                {!! Form::label('account_number', __('Account Number'),['class'=>'form-control-label']) !!}
+                                {!! Form::number('account_number', null, ['class' => 'form-control']) !!}
 
-                        </div>
-                        <div class="form-group col-md-6">
-                            {!! Form::label('bank_name', __('Bank Name'),['class'=>'form-control-label']) !!}
-                            {!! Form::text('bank_name', null, ['class' => 'form-control']) !!}
+                            </div>
+                            <div class="form-group col-md-6">
+                                {!! Form::label('bank_name', __('Bank Name'),['class'=>'form-control-label']) !!}
+                                {!! Form::text('bank_name', null, ['class' => 'form-control']) !!}
 
-                        </div>
-                        <div class="form-group col-md-6">
-                            {!! Form::label('bank_identifier_code', __('Bank Identifier Code'),['class'=>'form-control-label']) !!}
-                            {!! Form::text('bank_identifier_code',null, ['class' => 'form-control']) !!}
-                        </div>
-                        <div class="form-group col-md-6">
-                            {!! Form::label('branch_location', __('Branch Location'),['class'=>'form-control-label']) !!}
-                            {!! Form::text('branch_location',null, ['class' => 'form-control']) !!}
-                        </div>
-                        <div class="form-group col-md-6">
-                            {!! Form::label('tax_payer_id', __('Tax Payer Id'),['class'=>'form-control-label']) !!}
-                            {!! Form::text('tax_payer_id',null, ['class' => 'form-control']) !!}
-                        </div>
+                            </div>
+                            <div class="form-group col-md-6">
+                                {!! Form::label('bank_identifier_code', __('Bank Identifier Code'),['class'=>'form-control-label']) !!}
+                                {!! Form::text('bank_identifier_code',null, ['class' => 'form-control']) !!}
+                            </div>
+                            <div class="form-group col-md-6">
+                                {!! Form::label('branch_location', __('Branch Location'),['class'=>'form-control-label']) !!}
+                                {!! Form::text('branch_location',null, ['class' => 'form-control']) !!}
+                            </div>
+                            <div class="form-group col-md-6">
+                                {!! Form::label('tax_payer_id', __('Tax Payer Id'),['class'=>'form-control-label']) !!}
+                                {!! Form::text('tax_payer_id',null, ['class' => 'form-control']) !!}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -218,7 +244,9 @@
                                     <div class="col-md-12">
                                         <div class="info">
                                             <strong>{{$document->name }}</strong>
-                                            <span><a href="{{ (!empty($employeedoc[$document->id])?asset(Storage::url('uploads/document')).'/'.$employeedoc[$document->id]:'') }}" target="_blank">{{ (!empty($employeedoc[$document->id])?$employeedoc[$document->id]:'') }}</a></span>
+                                            <span><a
+                                                    href="{{ (!empty($employeedoc[$document->id])?asset(Storage::url('uploads/document')).'/'.$employeedoc[$document->id]:'') }}"
+                                                    target="_blank">{{ (!empty($employeedoc[$document->id])?$employeedoc[$document->id]:'') }}</a></span>
                                         </div>
                                     </div>
                                 @endforeach
@@ -281,7 +309,8 @@
     @if(\Auth::user()->type != 'employee')
         <div class="row">
             <div class="col-12">
-                <input type="submit" value="{{__('Update')}}" class="btn-create btn-xs badge-blue radius-10px float-right">
+                <input type="submit" value="{{__('Update')}}"
+                       class="btn-create btn-xs badge-blue radius-10px float-right">
             </div>
         </div>
     @endif
